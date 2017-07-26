@@ -3,4 +3,9 @@
 
 # QM_2017_SSS_Team11
 
-Team 11 is ready to go.
+To install, please run: 
+```python
+pip install -e .
+```
+
+Current methods include SCF with damping and SCF with DIIS extrapolation.
