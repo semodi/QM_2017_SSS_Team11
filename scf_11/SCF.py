@@ -6,12 +6,16 @@ import psi4
 np.set_printoptions(suppress=True, precision=4)
 
 # Built a MintsHelper - helps get integrals from psi4
-mints = psi4.core.MintsHelper(params.bas)
+def get_mints (bas):
 
-nbf = mints.nbf()
+    mints = psi4.core.MintsHelper(bas)
 
-if (nbf > 100):
-    raise Exception ("More than 100 basis functions!")
+    nbf = mints.nbf()
+
+    if (nbf > 100):
+        raise Exception ("More than 100 basis functions!")
+
+    return mints
 
 
 def diag(F, A):
@@ -110,4 +114,6 @@ def scf(mints, e_conv, d_conv, nel):
     return E_total
 
 if __name__ == "__main__":
+    mints = get_mints(params.bas)
+
     scf(mints, params.e_conv, params.d_conv, params.nel)
