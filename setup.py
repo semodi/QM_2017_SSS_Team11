@@ -2,12 +2,12 @@ import setuptools
 
 if __name__ == "__main__":
     setuptools.setup(
-        name='scf11',
+        name='scf_11',
         version="0.1.1",
-        description='',
-        author='',
-        author_email='',
-        url="",
+        description='A starting template for Python programs',
+        author='Kathryn Lebold',
+        author_email='kml5480@psu.edu',
+        url="https://github.com/MolSSI-SSS/QM_2017_SSS_Team11",
         license='BSD-3C',
         packages=setuptools.find_packages(),
         install_requires=[
