@@ -5,6 +5,7 @@ O
 H 1 1.1
 H 1 1.1 2 104
 """)
+mol.update_geometry()
 
 bas = psi4.core.BasisSet.build(mol, target="aug-cc-pVDZ")
 
