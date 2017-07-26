@@ -15,3 +15,4 @@ nel = 5
 damp_value = 0.20
 damp_start = 5
 JK_mode = False
+DIIS_mode = False

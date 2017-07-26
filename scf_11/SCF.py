@@ -1,7 +1,8 @@
 # coding: utf-8
-import params
+from * import params
 import numpy as np
 import psi4
+from * import diis
 
 np.set_printoptions(suppress=True, precision=4)
 
@@ -76,6 +77,9 @@ def scf(mints, e_conv, d_conv, nel):
     # Starting SCF loop
     E_old = 0.0
     F_old = None
+    F_list = []
+    grad_list = []
+ 
     for iteration in range(30):
         # Form J and K
         J = make_J(g, D, params.JK_mode)
@@ -83,16 +87,19 @@ def scf(mints, e_conv, d_conv, nel):
 
         F_new = H + 2.0 * J - K
 
-        F = damp(F_old, F_new, params.damp_start, params.damp_value, iteration)
-
-        F_old = F_new
+        if DIIS_mode:
+            F_list.append(F_new)
+            F = F_new
+        else:
+            F = damp(F_old, F_new, params.damp_start, params.damp_value, iteration)
+            F_old = F_new
         
         # Build the AO gradient
-        grad = F @ D @ S - S @ D @ F
+        grad = A.T @ (F @ D @ S - S @ D @ F) @ A
 
         grad_rms = np.mean(grad ** 2) ** 0.5
-
-        # Build the energy
+        
+          # Build the energy
         E_electric = np.sum((F + H) * D)
         E_total = E_electric + params.mol.nuclear_repulsion_energy()
 
@@ -106,6 +113,11 @@ def scf(mints, e_conv, d_conv, nel):
             print ("SCF has finished!") 
             break
 
+        if DIIS_mode:
+            grad_list.append(grad)
+            if iteration > 2:
+                F = diis.diis(F_list,grad_list)
+        
         eps, C = diag(F, A)
         Cocc = C[:, :params.nel]
         D = Cocc @ Cocc.T        
