@@ -4,5 +4,6 @@ coverage:
   ignore:
     - test/.*
     - setup.py
+    - SCF_with_damping.py
   status:
     patch: false
