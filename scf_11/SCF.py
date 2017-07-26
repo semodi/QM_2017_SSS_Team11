@@ -6,7 +6,7 @@ import psi4
 np.set_printoptions(suppress=True, precision=4)
 
 # Built a MintsHelper - helps get integrals from psi4
-def get_mints (bas):
+def get_mints(bas):
 
     mints = psi4.core.MintsHelper(bas)
 
