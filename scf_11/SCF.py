@@ -1,5 +1,5 @@
 # coding: utf-8
-import params
+from . import params
 import numpy as np
 import psi4
 
