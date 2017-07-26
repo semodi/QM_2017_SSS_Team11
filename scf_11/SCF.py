@@ -1,10 +1,16 @@
 # coding: utf-8
-from * import params
+
 import numpy as np
 import psi4
-from * import diis
+try:
+    from . import params
+    from . import diis
+except SystemError:
+    import params
+    import diis
 
 np.set_printoptions(suppress=True, precision=4)
+
 
 # Built a MintsHelper - helps get integrals from psi4
 def get_mints(bas):
@@ -49,7 +55,7 @@ def damp(F_old, F_new, damp_start, damp_value, i):
         F = F_new
     return F
 
-def scf(mints, e_conv, d_conv, nel):
+def scf(mints, e_conv, d_conv, nel, JK_mode, DIIS_mode, damp_start, damp_value, mol):
     '''
     Main SCF function
     '''
@@ -71,7 +77,7 @@ def scf(mints, e_conv, d_conv, nel):
 
     # Constructing initial density matrix
     eps, C = diag(H, A)
-    Cocc = C[:, :params.nel]
+    Cocc = C[:, :nel]
     D = Cocc @ Cocc.T  
 
     # Starting SCF loop
@@ -82,8 +88,8 @@ def scf(mints, e_conv, d_conv, nel):
  
     for iteration in range(30):
         # Form J and K
-        J = make_J(g, D, params.JK_mode)
-        K = make_K(g, D, params.JK_mode)
+        J = make_J(g, D, JK_mode)
+        K = make_K(g, D, JK_mode)
 
         F_new = H + 2.0 * J - K
 
@@ -91,7 +97,7 @@ def scf(mints, e_conv, d_conv, nel):
             F_list.append(F_new)
             F = F_new
         else:
-            F = damp(F_old, F_new, params.damp_start, params.damp_value, iteration)
+            F = damp(F_old, F_new, damp_start, damp_value, iteration)
             F_old = F_new
         
         # Build the AO gradient
@@ -101,7 +107,7 @@ def scf(mints, e_conv, d_conv, nel):
         
           # Build the energy
         E_electric = np.sum((F + H) * D)
-        E_total = E_electric + params.mol.nuclear_repulsion_energy()
+        E_total = E_electric + mol.nuclear_repulsion_energy()
 
         E_diff = E_total - E_old
         E_old = E_total
@@ -109,7 +115,7 @@ def scf(mints, e_conv, d_conv, nel):
                 (iteration, E_total, E_diff, grad_rms))
 
         # Break if e_conv and d_conv are met
-        if (E_diff < params.e_conv) and (grad_rms < params.d_conv):
+        if (E_diff < e_conv) and (grad_rms < d_conv):
             print ("SCF has finished!") 
             break
 
@@ -119,7 +125,7 @@ def scf(mints, e_conv, d_conv, nel):
                 F = diis.diis(F_list,grad_list)
         
         eps, C = diag(F, A)
-        Cocc = C[:, :params.nel]
+        Cocc = C[:, :nel]
         D = Cocc @ Cocc.T        
         if (iteration == 29):
             print ("SCF steps have reached max.")
@@ -128,4 +134,5 @@ def scf(mints, e_conv, d_conv, nel):
 if __name__ == "__main__":
     mints = get_mints(params.bas)
 
-    scf(mints, params.e_conv, params.d_conv, params.nel)
+    scf(mints, params.e_conv, params.d_conv, params.nel, params.JK_mode, params.DIIS_mode,
+        params.damp_start, params.damp_value, params.mol)
