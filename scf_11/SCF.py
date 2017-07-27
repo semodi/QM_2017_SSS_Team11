@@ -42,8 +42,8 @@ def diag(F, A):
 
 def make_JK(g, Cocc, JK_mode):
     '''
-    Function to make Coulomb matrix J and Exchange matrix K from two-electron integrals g
-    and density D, with flag JK_mode
+    Function to make Coulomb matrix J and Exchange matrix K from
+    two-electron integrals g and density D, with flag JK_mode
     '''
     if JK_mode:
         J, K = jk.make_JK_adv(g, Cocc)
@@ -52,17 +52,6 @@ def make_JK(g, Cocc, JK_mode):
         J = np.einsum("pqrs,rs->pq", g, D)
         K = np.einsum("prqs,rs->pq", g, D)
     return J, K
-
-
-def make_K(g, D, JK_mode):
-    '''
-    Function to make Exchange matrix J from two-electron integrals g
-    and density D, with flag JK_mode
-    '''
-
-    if not JK_mode:
-        K = np.einsum("prqs,rs->pq", g, D)
-    return K
 
 
 def damp(F_old, F_new, damp_start, damp_value, i):
@@ -112,7 +101,6 @@ def scf(mints, e_conv, d_conv, nel, JK_mode, DIIS_mode, damp_start,
     for iteration in range(30):
         # Form J and K
         J, K = make_JK(g, Cocc, JK_mode)
-#        K = make_K(g, Cocc, JK_mode)
 
         # Form new Fock matrix
         F_new = H + 2.0 * J - K
