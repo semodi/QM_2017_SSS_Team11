@@ -8,19 +8,20 @@ except SystemError:
 
 def make_JK_adv(g, Cocc):
     """
-    Function to make the Coulomb and Exchange matrices 
+    Function to make the Coulomb and Exchange matrices
     using density-fitting
     """
 # Building the density matrix
     D = Cocc @ Cocc.T
 
 # Building the auxiliary basis
-    aux = psi4.core.BasisSet.build(params.mol, fitrole="JKFIT", other="aug-cc-PVDZ")
-    
+    aux = psi4.core.BasisSet.build(params.mol, fitrole="JKFIT",
+                                   other="aug-cc-PVDZ")
+
 # Building the zero basis for the 2- and 3-center integrals
     zero_bas = psi4.core.BasisSet.zero_ao_basis_set()
 
-# Building mints   
+# Building mints
     mints = psi4.core.MintsHelper(params.bas)
 
 # Building 3-center integrals
