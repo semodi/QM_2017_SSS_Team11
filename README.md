@@ -8,4 +8,4 @@ To install, please run:
 pip install -e .
 ```
 
-Current methods include SCF with damping and SCF with DIIS extrapolation.
+Current methods include SCF with damping, DIIS extrapolation, and density-fitted JK optimization.
