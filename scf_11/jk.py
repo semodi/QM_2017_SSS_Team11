@@ -9,7 +9,7 @@ except SystemError:
 def JK_adv_setup(mints):
     # Building the auxiliary basis
     aux = psi4.core.BasisSet.build(params.mol, fitrole="JKFIT",
-                                   other="aug-cc-PVDZ")
+                                   other=params.bas_str)
 
     # Building the zero basis for the 2- and 3-center integrals
     zero_bas = psi4.core.BasisSet.zero_ao_basis_set()
@@ -39,8 +39,8 @@ def make_JK_adv(Pls, g, D, Cocc):
     J = np.einsum("pmn,p->mn", Pls, chi)
 
     # Building the Exchange matrix ( O(N^2*Naux*p) )
-    xi1 = np.einsum("qms,ps->qmp", Pls, Cocc.T)
-    xi2 = np.einsum("qnl,pl->qnp", Pls, Cocc.T)
+    xi1 = np.einsum("qms,sp->qmp", Pls, Cocc)
+    xi2 = np.einsum("qnl,lp->qnp", Pls, Cocc)
     K = np.einsum("qmp,qnp->mn", xi1, xi2)
 
     return J, K

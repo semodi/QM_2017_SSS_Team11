@@ -23,8 +23,8 @@ def get_mints(bas):
 
     nbf = mints.nbf()
 
-    if (nbf > 100):
-        raise Exception("More than 100 basis functions!")
+    if (nbf > 200):
+        raise Exception("More than 200 basis functions!")
 
     return mints
 
