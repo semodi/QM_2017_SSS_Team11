@@ -6,10 +6,12 @@ try:
     from . import params
     from . import diis
     from . import jk
+    from . import molecule
 except SystemError:
     import params
     import diis
     import jk
+    import molecule
 
 np.set_printoptions(suppress=True, precision=4)
 
@@ -65,11 +67,18 @@ def damp(F_old, F_new, damp_start, damp_value, i):
     return F
 
 
-def scf(mints, e_conv, d_conv, nel, JK_mode, DIIS_mode, damp_start,
-        damp_value, mol):
+def scf(molecule, damp_start=5, damp_value=0.2,
+                e_conv=1.e-6, d_conv=1.e-6, JK_mode=False, DIIS_mode=False):
     '''
     Main SCF function, returns HF Energy
     '''
+#def scf(molecule, e_conv, d_conv, nel, JK_mode, DIIS_mode, damp_start,
+#        damp_value):
+
+    # Use object attributes
+    mints = molecule.get_mints()
+    mol = molecule.mol
+    nel = molecule.nel
 
     # Constructing kinetic and potential energy arrays
     V = np.array(mints.ao_potential())
@@ -80,7 +89,7 @@ def scf(mints, e_conv, d_conv, nel, JK_mode, DIIS_mode, damp_start,
 
     # Constructing overlap and electron repulsion integral arrays
     S = np.array(mints.ao_overlap())
-    g = np.array(mints.ao_eri())
+    g = molecule.get_ao_eri()
 
     A = mints.ao_overlap()
     A.power(-0.5, 1.e-14)
@@ -151,11 +160,14 @@ def scf(mints, e_conv, d_conv, nel, JK_mode, DIIS_mode, damp_start,
         D = Cocc @ Cocc.T
         if (iteration == 29):
             print("SCF steps have reached max.")
+
+    molecule.C = C
+    molecule.D = D
+    molecule.eps = eps
+
     return E_total
 
 if __name__ == "__main__":
-    mints = get_mints(params.bas)
-
-    scf(mints, params.e_conv, params.d_conv, params.nel, params.JK_mode,
-        params.DIIS_mode,
-        params.damp_start, params.damp_value, params.mol)
+    h2o = molecule.Molecule(params.mol,params.bas,params.nel)
+    scf(h2o, params.damp_start, params.damp_value, params.e_conv, params.d_conv, params.JK_mode,
+        params.DIIS_mode)
