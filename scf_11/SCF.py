@@ -65,8 +65,8 @@ def damp(F_old, F_new, damp_start, damp_value, i):
     return F
 
 
-def scf(mints, e_conv, d_conv, nel, JK_mode, DIIS_mode, damp_start,
-        damp_value, mol):
+def scf(mints, mol, nel, damp_start=5, damp_value=0.2,
+                e_conv=1.e-6, d_conv=1.e-6, JK_mode=False, DIIS_mode=False):
     '''
     Main SCF function, returns HF Energy
     '''
@@ -168,6 +168,5 @@ def scf(mints, e_conv, d_conv, nel, JK_mode, DIIS_mode, damp_start,
 if __name__ == "__main__":
     mints = get_mints(params.bas)
 
-    scf(mints, params.e_conv, params.d_conv, params.nel, params.JK_mode,
-        params.DIIS_mode,
-        params.damp_start, params.damp_value, params.mol)
+    scf(mints, params.mol, params.nel, params.damp_start, params.damp_value, params.e_conv, params.d_conv, params.JK_mode,
+        params.DIIS_mode)
