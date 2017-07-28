@@ -70,6 +70,13 @@ def scf(mints, e_conv, d_conv, nel, JK_mode, DIIS_mode, damp_start,
     '''
     Main SCF function, returns HF Energy
     '''
+#def scf(molecule, e_conv, d_conv, nel, JK_mode, DIIS_mode, damp_start,
+#        damp_value):
+
+    # Use object attributes
+    mints = molecule.get_mints()
+    mol = molecule.mol
+
 
     # Constructing kinetic and potential energy arrays
     V = np.array(mints.ao_potential())
@@ -80,7 +87,7 @@ def scf(mints, e_conv, d_conv, nel, JK_mode, DIIS_mode, damp_start,
 
     # Constructing overlap and electron repulsion integral arrays
     S = np.array(mints.ao_overlap())
-    g = np.array(mints.ao_eri())
+    g = molecule.get_ao_eri()
 
     A = mints.ao_overlap()
     A.power(-0.5, 1.e-14)
@@ -151,6 +158,11 @@ def scf(mints, e_conv, d_conv, nel, JK_mode, DIIS_mode, damp_start,
         D = Cocc @ Cocc.T
         if (iteration == 29):
             print("SCF steps have reached max.")
+
+    molecule.C = C
+    molecule.D = D
+    molecule.eps = eps
+
     return E_total
 
 if __name__ == "__main__":

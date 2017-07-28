@@ -1,4 +1,5 @@
 import psi4
+import numpy as np
 
 class Molecule:
 
@@ -21,9 +22,9 @@ class Molecule:
             self.bas = psi4.core.BasisSet.build(self.mol, target=bas_str)
 
     def get_mints(self):
-    '''
-    Built a MintsHelper - helps get integrals from psi4
-    '''
+        '''
+        Built a MintsHelper - helps get integrals from psi4
+        '''
         mints = psi4.core.MintsHelper(self.bas)
 
         nbf = mints.nbf()
@@ -34,10 +35,10 @@ class Molecule:
         return mints
 
     def get_ao_eri(self):
-    '''
-    Returns two electron integrals. If they don't exist
-    use mints to calculate and store them.
-    '''
-        if self.ao_eri = None:
+        '''
+        Returns two electron integrals. If they don't exist
+        use mints to calculate and store them.
+        '''
+        if self.ao_eri == None:
             self.ao_eri = np.array(mints.ao_eri())
         return self.ao_eri
