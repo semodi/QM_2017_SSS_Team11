@@ -3,12 +3,14 @@ import numpy as np
 
 class Molecule:
 
-    def __init__(self, mol=None, bas=None):
+    def __init__(self, mol=None, bas=None, nel=0):
         self.mol = mol
         self.bas = bas
+        self.nel = nel
         self.C = None
         self.D = None
         self.eps = None
+        self.ao_eri_computed = False
         self.ao_eri = None
 
     def set_geometry(self, geom_str):
@@ -39,6 +41,6 @@ class Molecule:
         Returns two electron integrals. If they don't exist
         use mints to calculate and store them.
         '''
-        if self.ao_eri == None:
-            self.ao_eri = np.array(mints.ao_eri())
+        if self.ao_eri_computed == False:
+            self.ao_eri = np.array(self.get_mints().ao_eri())
         return self.ao_eri

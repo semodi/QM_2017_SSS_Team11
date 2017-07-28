@@ -6,10 +6,12 @@ try:
     from . import params
     from . import diis
     from . import jk
+    from . import molecule
 except SystemError:
     import params
     import diis
     import jk
+    import molecule
 
 np.set_printoptions(suppress=True, precision=4)
 
@@ -65,7 +67,7 @@ def damp(F_old, F_new, damp_start, damp_value, i):
     return F
 
 
-def scf(mints, mol, nel, damp_start=5, damp_value=0.2,
+def scf(molecule, damp_start=5, damp_value=0.2,
                 e_conv=1.e-6, d_conv=1.e-6, JK_mode=False, DIIS_mode=False):
     '''
     Main SCF function, returns HF Energy
@@ -76,7 +78,7 @@ def scf(mints, mol, nel, damp_start=5, damp_value=0.2,
     # Use object attributes
     mints = molecule.get_mints()
     mol = molecule.mol
-
+    nel = molecule.nel
 
     # Constructing kinetic and potential energy arrays
     V = np.array(mints.ao_potential())
@@ -166,7 +168,6 @@ def scf(mints, mol, nel, damp_start=5, damp_value=0.2,
     return E_total
 
 if __name__ == "__main__":
-    mints = get_mints(params.bas)
-
-    scf(mints, params.mol, params.nel, params.damp_start, params.damp_value, params.e_conv, params.d_conv, params.JK_mode,
+    h2o = molecule.Molecule(params.mol,params.bas,params.nel)
+    scf(h2o, params.damp_start, params.damp_value, params.e_conv, params.d_conv, params.JK_mode,
         params.DIIS_mode)
