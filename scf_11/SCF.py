@@ -15,22 +15,6 @@ except SystemError:
 
 np.set_printoptions(suppress=True, precision=4)
 
-
-def get_mints(bas):
-    '''
-    Built a MintsHelper - helps get integrals from psi4
-    '''
-
-    mints = psi4.core.MintsHelper(bas)
-
-    nbf = mints.nbf()
-
-    if (nbf > 200):
-        raise Exception("More than 200 basis functions!")
-
-    return mints
-
-
 def diag(F, A):
     '''
     Function to diag. a Fock mat. F with orthog. mat. A
