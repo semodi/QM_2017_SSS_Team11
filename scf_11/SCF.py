@@ -80,7 +80,7 @@ def scf(molecule, damp_start=5, damp_value=0.2,
     A = np.array(A)
 
     # Constructing initial density matrix
-    eps, C = diag(H, A)
+    eps, molecule.C = diag(H, A)
     Cocc = C[:, :nel]
     D = Cocc @ Cocc.T
 
@@ -139,13 +139,17 @@ def scf(molecule, damp_start=5, damp_value=0.2,
                 molecule.F = diis.diis(F_list, grad_list)
 
         # Build final density matrix
-        eps, C = diag(molecule.F, A)
-        Cocc = C[:, :nel]
+        if SOSCF_mode:
+            molecule.C = soscf(molecule)
+        else:
+            eps, molecule.C = diag(molecule.F, A)
+        Cocc = molecule.C[:, :nel]
         D = Cocc @ Cocc.T
+
         if (iteration == 29):
             print("SCF steps have reached max.")
 
-    molecule.C = C
+#    molecule.C = C
     molecule.D = D
     molecule.eps = eps
 
