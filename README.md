@@ -8,4 +8,12 @@ To install, please run:
 pip install -e .
 ```
 
-Current methods include SCF with damping, DIIS extrapolation, and density-fitted JK optimization.
+Current methods include:
+
+SCF:
+* Damping
+* Direct Inversion of Iterative Subspace (DIIS) extrapolation
+* Density fitting J-K algorithm
+
+MP2:
+* Spin-component scaled (SCS-MP2)
