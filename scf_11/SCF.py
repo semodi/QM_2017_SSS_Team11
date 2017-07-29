@@ -73,7 +73,7 @@ def scf(molecule, damp_start=5, damp_value=0.2,
 
     # Constructing overlap and electron repulsion integral arrays
     S = np.array(mints.ao_overlap())
-    g = molecule.get_ao_eri()
+    molecule.g = molecule.get_ao_eri()
 
     A = mints.ao_overlap()
     A.power(-0.5, 1.e-14)
@@ -98,7 +98,7 @@ def scf(molecule, damp_start=5, damp_value=0.2,
 
     for iteration in range(30):
         # Form J and K
-        J, K = make_JK(Pls, g, D, Cocc, JK_mode)
+        J, K = make_JK(Pls, molecule.g, D, Cocc, JK_mode)
 
         # Form new Fock matrix
         F_new = H + 2.0 * J - K
@@ -106,9 +106,9 @@ def scf(molecule, damp_start=5, damp_value=0.2,
         # Check if DIIS extrapolation is requested
         if DIIS_mode:
             F_list.append(F_new)
-            F = F_new
+            molecule.F = F_new
         else:
-            F = damp(F_old, F_new, damp_start, damp_value, iteration)
+            molecule.F = damp(F_old, F_new, damp_start, damp_value, iteration)
             F_old = F_new
 
         # Build the AO gradient
@@ -136,10 +136,10 @@ def scf(molecule, damp_start=5, damp_value=0.2,
         if DIIS_mode:
             grad_list.append(grad)
             if iteration > 2:
-                F = diis.diis(F_list, grad_list)
+                molecule.F = diis.diis(F_list, grad_list)
 
         # Build final density matrix
-        eps, C = diag(F, A)
+        eps, C = diag(molecule.F, A)
         Cocc = C[:, :nel]
         D = Cocc @ Cocc.T
         if (iteration == 29):
