@@ -9,6 +9,8 @@ class Molecule:
         self.nel = nel
         self.C = None
         self.D = None
+        self.g = None
+        self.F = None
         self.eps = None
         self.ao_eri_computed = False
         self.ao_eri = None
