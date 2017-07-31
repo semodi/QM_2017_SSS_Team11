@@ -6,11 +6,13 @@ try:
     from . import params
     from . import diis
     from . import jk
+    from . import soscf
     from . import molecule
 except SystemError:
     import params
     import diis
     import jk
+    import soscf
     import molecule
 
 np.set_printoptions(suppress=True, precision=4)
@@ -52,7 +54,8 @@ def damp(F_old, F_new, damp_start, damp_value, i):
 
 
 def scf(molecule, damp_start=5, damp_value=0.2,
-                e_conv=1.e-6, d_conv=1.e-6, JK_mode=False, DIIS_mode=False):
+                e_conv=1.e-6, d_conv=1.e-6,
+                JK_mode=False, DIIS_mode=False, SOSCF_mode=False):
     '''
     Main SCF function, returns HF Energy
     '''
@@ -81,7 +84,7 @@ def scf(molecule, damp_start=5, damp_value=0.2,
 
     # Constructing initial density matrix
     eps, molecule.C = diag(H, A)
-    Cocc = C[:, :nel]
+    Cocc = molecule.C[:, :nel]
     D = Cocc @ Cocc.T
 
     # Starting SCF loop
@@ -112,13 +115,13 @@ def scf(molecule, damp_start=5, damp_value=0.2,
             F_old = F_new
 
         # Build the AO gradient
-        grad = A.T @ (F @ D @ S - S @ D @ F) @ A
+        grad = A.T @ (molecule.F @ D @ S - S @ D @ molecule.F) @ A
 
         # Keep track of gradient root-mean-squared
         grad_rms = np.mean(grad ** 2) ** 0.5
 
         # Build the energy
-        E_electric = np.sum((F + H) * D)
+        E_electric = np.sum((molecule.F + H) * D)
         E_total = E_electric + mol.nuclear_repulsion_energy()
 
         E_diff = E_total - E_old
@@ -140,7 +143,7 @@ def scf(molecule, damp_start=5, damp_value=0.2,
 
         # Build final density matrix
         if SOSCF_mode:
-            molecule.C = soscf(molecule)
+            molecule.C = soscf.soscf(molecule)
         else:
             eps, molecule.C = diag(molecule.F, A)
         Cocc = molecule.C[:, :nel]
@@ -158,4 +161,4 @@ def scf(molecule, damp_start=5, damp_value=0.2,
 if __name__ == "__main__":
     h2o = molecule.Molecule(params.mol,params.bas,params.nel)
     scf(h2o, params.damp_start, params.damp_value, params.e_conv, params.d_conv, params.JK_mode,
-        params.DIIS_mode)
+        params.DIIS_mode, params.SOSCF_mode)
