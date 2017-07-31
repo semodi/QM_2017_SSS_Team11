@@ -6,11 +6,13 @@ try:
     from . import params
     from . import diis
     from . import jk
+    from . import soscf
     from . import molecule
 except SystemError:
     import params
     import diis
     import jk
+    import soscf
     import molecule
 
 np.set_printoptions(suppress=True, precision=4)
@@ -52,7 +54,8 @@ def damp(F_old, F_new, damp_start, damp_value, i):
 
 
 def scf(molecule, damp_start=5, damp_value=0.2,
-                e_conv=1.e-6, d_conv=1.e-6, JK_mode=False, DIIS_mode=False):
+                e_conv=1.e-6, d_conv=1.e-6,
+                JK_mode=False, DIIS_mode=False, SOSCF_mode=False):
     '''
     Main SCF function, returns HF Energy
     '''
@@ -73,15 +76,15 @@ def scf(molecule, damp_start=5, damp_value=0.2,
 
     # Constructing overlap and electron repulsion integral arrays
     S = np.array(mints.ao_overlap())
-    g = molecule.get_ao_eri()
+    molecule.g = molecule.get_ao_eri()
 
     A = mints.ao_overlap()
     A.power(-0.5, 1.e-14)
     A = np.array(A)
 
     # Constructing initial density matrix
-    eps, C = diag(H, A)
-    Cocc = C[:, :nel]
+    eps, molecule.C = diag(H, A)
+    Cocc = molecule.C[:, :nel]
     D = Cocc @ Cocc.T
 
     # Starting SCF loop
@@ -98,7 +101,7 @@ def scf(molecule, damp_start=5, damp_value=0.2,
 
     for iteration in range(30):
         # Form J and K
-        J, K = make_JK(Pls, g, D, Cocc, JK_mode)
+        J, K = make_JK(Pls, molecule.g, D, Cocc, JK_mode)
 
         # Form new Fock matrix
         F_new = H + 2.0 * J - K
@@ -106,19 +109,19 @@ def scf(molecule, damp_start=5, damp_value=0.2,
         # Check if DIIS extrapolation is requested
         if DIIS_mode:
             F_list.append(F_new)
-            F = F_new
+            molecule.F = F_new
         else:
-            F = damp(F_old, F_new, damp_start, damp_value, iteration)
+            molecule.F = damp(F_old, F_new, damp_start, damp_value, iteration)
             F_old = F_new
 
         # Build the AO gradient
-        grad = A.T @ (F @ D @ S - S @ D @ F) @ A
+        grad = A.T @ (molecule.F @ D @ S - S @ D @ molecule.F) @ A
 
         # Keep track of gradient root-mean-squared
         grad_rms = np.mean(grad ** 2) ** 0.5
 
         # Build the energy
-        E_electric = np.sum((F + H) * D)
+        E_electric = np.sum((molecule.F + H) * D)
         E_total = E_electric + mol.nuclear_repulsion_energy()
 
         E_diff = E_total - E_old
@@ -136,16 +139,20 @@ def scf(molecule, damp_start=5, damp_value=0.2,
         if DIIS_mode:
             grad_list.append(grad)
             if iteration > 2:
-                F = diis.diis(F_list, grad_list)
+                molecule.F = diis.diis(F_list, grad_list)
 
         # Build final density matrix
-        eps, C = diag(F, A)
-        Cocc = C[:, :nel]
+        if SOSCF_mode:
+            molecule.C = soscf.soscf(molecule)
+        else:
+            eps, molecule.C = diag(molecule.F, A)
+        Cocc = molecule.C[:, :nel]
         D = Cocc @ Cocc.T
+
         if (iteration == 29):
             print("SCF steps have reached max.")
 
-    molecule.C = C
+#    molecule.C = C
     molecule.D = D
     molecule.eps = eps
 
@@ -154,4 +161,4 @@ def scf(molecule, damp_start=5, damp_value=0.2,
 if __name__ == "__main__":
     h2o = molecule.Molecule(params.mol,params.bas,params.nel)
     scf(h2o, params.damp_start, params.damp_value, params.e_conv, params.d_conv, params.JK_mode,
-        params.DIIS_mode)
+        params.DIIS_mode, params.SOSCF_mode)
