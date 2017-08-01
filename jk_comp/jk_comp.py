@@ -1,4 +1,5 @@
 import numpy as np
+import jk_blas
 import psi4
 
 # Make sure we get the same random array
@@ -26,8 +27,12 @@ J_ref = np.einsum("pqrs,rs->pq", I, D)
 K_ref = np.einsum("prqs,rs->pq", I, D)
 
 # Your implementation
-J = np.random.rand(nbf, nbf)
-K = np.random.rand(nbf, nbf)
+# Flatten I into rank-2 tensor
+
+I_flat = I.flatten().reshape(nbf**2,nbf**2)
+D_flat = D.flatten()
+
+J = calc_J(I_flat,D_flat) 
 
 # Make sure your implementation is correct
 print("J is correct: %s" % np.allclose(J, J_ref))
