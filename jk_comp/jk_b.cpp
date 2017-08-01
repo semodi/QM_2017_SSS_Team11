@@ -16,9 +16,9 @@ int index(int a, int b)
     return ab;
 }
 
-py::array_t<double> make_J(py::array_t<double> g, py::array_t<double> D)
+std::vector<py::array> make_J(py::array_t<double> g, py::array_t<double> D)
 {
-    int i, j, k, l, ij, kl, ijkl;
+    int i, j, k, l, ij, kl, ik, jl, ikjl, ijkl;
     py::buffer_info g_info = g.request();    
     py::buffer_info D_info = D.request();    
 
@@ -50,6 +50,7 @@ py::array_t<double> make_J(py::array_t<double> g, py::array_t<double> D)
     }
 
     std::vector<double> J_data(nbf * nbf);
+    std::vector<double> K_data(nbf * nbf);
 //    std::vector<double> temp(nbf(nbf+1)/2);
     std::vector<double> temp(nbf*nbf);
 
@@ -57,6 +58,7 @@ py::array_t<double> make_J(py::array_t<double> g, py::array_t<double> D)
     {
         for(size_t j = 0; j <= i; j++)
         {
+//Creating J
             std::fill(temp.begin(), temp.end(), 0);
             ij = index(i,j);
 //            temp.setZero();
@@ -71,6 +73,22 @@ py::array_t<double> make_J(py::array_t<double> g, py::array_t<double> D)
             }
             J_data[i * nbf + j] = LAWrap::dot(nbf*nbf, temp.data(), 1, D_data, 1);
             J_data[j * nbf + i] = J_data [ i * nbf + j];
+
+//Creating K
+            std::fill(temp.begin(), temp.end(), 0);
+//            temp.setZero();
+            for(size_t k = 0; k < nbf; k++)
+            {
+                for(size_t l = 0; l < nbf; l++)
+                {
+                    ik = index(i,k);
+                    jl = index(j,l);
+                    ikjl = index(ik,jl);
+                    temp[k*nbf + l] = eri[ikjl];
+                }
+            }
+            K_data[i * nbf + j] = LAWrap::dot(nbf*nbf, temp.data(), 1, D_data, 1);
+            K_data[j * nbf + i] = K_data [ i * nbf + j];
         }
     }
 
@@ -84,12 +102,25 @@ py::array_t<double> make_J(py::array_t<double> g, py::array_t<double> D)
             { nbf * sizeof(double), sizeof(double) }
         };
 
+    py::buffer_info Kbuff = 
+        {
+            K_data.data(),
+            sizeof(double),
+            py::format_descriptor<double>::format(),
+            2,
+            { nbf, nbf },
+            { nbf * sizeof(double), sizeof(double) }
+        };
+
 //    std::cout << "c++ J starts" << std::endl;
 //    for(auto i:J_data)
 //        std::cout << i << std::endl;
 //    std::cout << "c++ J ends" << std::endl;
-
-    return py::array_t<double>(Jbuff);
+    
+    py::array J(Jbuff);
+    py::array K(Kbuff);
+    return {J, K};
+    //return py::array_t<double>(Jbuff);
 } 
 
 
